@@ -8,4 +8,6 @@ By using this library, setting a pin of the shift-register is as easy as calling
 The library implements shiftOut() to allow device specific drivers using the expanded pins of the shift-register
 to be used as easy as those on the MCU.
 
-The current version of this library supports ESP8266 and Atmel ATmega328 and ATmega168 MCU's.
+# Features & limitations
+- The current version of this library supports ESP8266 and Atmel ATmega328 and ATmega168 MCUs. Other Atmel processors may work as well, but they've not been tested yet. For some MCUs the library will require modification. Please let me know if you've succesfully used this library with other MCUs. 
+- Currently a maximum of four cascaded shift registers is supported. Please note each added shift register will require more bits to be shifted out, resulting in slower handling of digitalWrite() and shiftOut() calls
