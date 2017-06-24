@@ -45,7 +45,7 @@ class mxUnified74HC595 : public mxUnifiedIO
 #if defined(ESP8266)
   void begin(uint32_t spi_speed=4000000);
 #else
-  void begin(uint32_t spi_speed_div=SPI_CLOCK_DIV4);
+  void begin(uint8_t spi_speed_div=SPI_CLOCK_DIV4);
 #endif
   void send8Bits(bool fClosedTransmission=true);
   void sendBits(void);
