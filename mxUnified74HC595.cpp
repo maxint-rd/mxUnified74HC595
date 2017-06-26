@@ -4,6 +4,7 @@ mxUnified74HC595::mxUnified74HC595(uint8_t nNumRegisters)		// default: nNumRegis
 {	// constructor for hardware SPI
 	// Hardware SPI pins:
 	//   ATmega328: SS=10, MOSI=11, SCLK=12
+	//   ATtiny85:  SS=0, MOSI=1, SCLK=2
 	//   ESP8266:   SS=15, MOSI=13, SCLK=14
 	
 	_nConstr++;
@@ -20,6 +21,7 @@ mxUnified74HC595::mxUnified74HC595(uint8_t nNumRegisters)		// default: nNumRegis
 
 mxUnified74HC595::mxUnified74HC595(uint8_t nPinSS, uint8_t nPinMOSI, uint8_t nPinSCLK, uint8_t nNumRegisters)		// default: nNumRegisters=1 
 {	// constructor for software SPI
+	//   Suggested pins ESP-01:   SS=3 (RX), MOSI=2, SCLK=0
 	_nConstr++;
 	_nNumRegisters=nNumRegisters;
 	_nNumRegisters=min(MXUNIFIED74HC595_MAX_REGISTERS, nNumRegisters);
@@ -60,15 +62,20 @@ void mxUnified74HC595::begin(uint8_t spi_speed_div)	// default: spi_speed_div=SP
 		// see https://github.com/adafruit/Adafruit-PCD8544-Nokia-5110-LCD-library/pull/27/commits
     // Datasheet says 4 MHz is max SPI clock speed
     SPI.setFrequency(spi_speed);			// 4MHz works on some devices, but may be too fast for 74HC595 using regular breadboard and wires
+#elif defined(MXUNIFIED_ATTINY)
+		// setting SPI clock is not supported by tinySPI
 #else
     SPI.setClockDivider(spi_speed_div);	// DIV4=4 Mhz on 5V@16MHz or 2MHz on 3.3V@8MHz
 #endif
     SPI.setDataMode(SPI_MODE0);
+#if defined(MXUNIFIED_ATTINY)
+		// setBitOrder is not supported by tinySPI. Only MSBFIRST is supported.
+#else
     SPI.setBitOrder(MSBFIRST);
+#endif
   }
   else
-  {
-    // Setup software SPI.
+  { // Setup software SPI.
 
     // Set software SPI specific pin outputs.
 		::pinMode(_spi_MOSI, OUTPUT);
@@ -86,41 +93,38 @@ void mxUnified74HC595::begin(uint8_t spi_speed_div)	// default: spi_speed_div=SP
     mosiport    = portOutputRegister(digitalPinToPort(_spi_MOSI));
     mosipinmask = digitalPinToBitMask(_spi_MOSI);
 
-#if(_MXUNIFIEDIO_DEBUG)
-  Serial.print("sw-SPI: SS=");
-  Serial.print(_spi_SS);
-  Serial.print(", MOSI=");
-  Serial.print(_spi_MOSI);
-  Serial.print(", SCLK=");
-  Serial.println(_spi_SCLK);
-
-  Serial.print("clkport:");
-  Serial.println(*clkport);
-  Serial.print("Mask:");
-  Serial.println(clkpinmask);
-  Serial.print("mosiport:");
-  Serial.println(*mosiport);
-  Serial.print("Mask:");
-  Serial.println(mosipinmask);
-#endif
+		#if(_MXUNIFIEDIO_DEBUG)
+		  Serial.print("sw-SPI: SS=");
+		  Serial.print(_spi_SS);
+		  Serial.print(", MOSI=");
+		  Serial.print(_spi_MOSI);
+		  Serial.print(", SCLK=");
+		  Serial.println(_spi_SCLK);
+		
+		  Serial.print("clkport:");
+		  Serial.println(*clkport);
+		  Serial.print("clkpinmask:");
+		  Serial.println(clkpinmask);
+		  Serial.print("mosiport:");
+		  Serial.println(*mosiport);
+		  Serial.print("mosipinmask:");
+		  Serial.println(mosipinmask);
+		#endif
 
 #endif
   }
 
-#ifdef ESP8266
 	::pinMode(_spi_SS, OUTPUT);
-//  ::digitalWrite(_spi_SS, LOW);
-#else
+#ifndef ESP8266
   ssport    = portOutputRegister(digitalPinToPort(_spi_SS));
   sspinmask = digitalPinToBitMask(_spi_SS);
-#if(_MXUNIFIEDIO_DEBUG)
-  Serial.print("SSPort:");
-  Serial.println(*ssport);
-  Serial.print("Mask:");
-  Serial.println(sspinmask);
+	#if(_MXUNIFIEDIO_DEBUG)
+	  Serial.print("SSPort:");
+	  Serial.println(*ssport);
+	  Serial.print("Mask:");
+	  Serial.println(sspinmask);
+	#endif
 #endif
-#endif
-
 
 #if(_MXUNIFIEDIO_DEBUG)
   Serial.print(F("mxUnified74HC595::begin("));
@@ -175,8 +179,8 @@ void mxUnified74HC595::sendBits()
 }
 
 void mxUnified74HC595::shiftOut(uint8_t nDataPin, uint8_t nClockPin, uint8_t bitOrder, uint8_t nValue)
-{	// shiftOut the bits of one byto to the stated exended data and clock pins
-	// TODO: bitOrder can be MSBFIRST or LSBFIRST, not implemented yet!
+{	// shiftOut the bits of one byte to the stated exended data and clock pins
+	// TODO: bitOrder can be MSBFIRST or LSBFIRST, LSBFIRST is not implemented yet!
 	// TODO: currently shiftOut will not start/end transmission. Would be nice if automatic?
 	uint8_t aI2C_bytestream[16];
 	uint8_t uCnt=0;
@@ -253,8 +257,9 @@ inline void mxUnified74HC595::spiWrite(uint8_t d)
 
 
     // Hardware SPI write.
-		// On 328@8MHz: hw-SPI SCLK L+H=0.25+0.25us=0.5us (8MHz/DIV4=2MHz SPI)
+		// On 168/328@8MHz: hw-SPI SCLK L+H=0.25+0.25us=0.5us (8MHz/DIV4=2MHz SPI)
 		// On ESP@80MHz: hw-SPI SCLK L+H=0.125+0.125us=0.25us (4MHz SPI)
+		// On ATtiny85@8MHz: hw-SPI SCLK L+H=0,75+0,75=1,5us () (667 kHz, using tinySPI on USI)
     SPI.transfer(d);
   }
   else
@@ -282,17 +287,21 @@ inline void mxUnified74HC595::spiWrite(uint8_t d)
       ::digitalWrite(_spi_SCLK, HIGH);
       ::digitalWrite(_spi_SCLK, LOW);
     }
- #else
+#else
+    //::shiftOut(_spi_MOSI, _spi_SCLK, MSBFIRST, d);			// on ATtiny85@8Mzh shiftOut is slower than doing digitalWrites: SCLK H+L=7+19=26us
     for(uint8_t bit = 0x80; bit; bit >>= 1)
     {
 /*
 			// On 328@8Mzh: digitalWrite SCLK L+H=8+17us=25us
+			// on ATtiny85@8Mzh using digitalWrites is faster than shiftOut: SCLK H+L=7+16=23us
       ::digitalWrite(_spi_SCLK, LOW);
       if (d & bit) ::digitalWrite(_spi_MOSI, HIGH);
       else         ::digitalWrite(_spi_MOSI, LOW);
       ::digitalWrite(_spi_SCLK, HIGH);
 */
 			// On 328@8Mzh: port-mani SCLK L+H=3.5+2us=5.5us
+			// On 168@8Mzh: port-mani SCLK H+L=1.6+4us=5.5us
+			// On ATtiny85@8Mzh: port-mani SCLK H+L=1.5+42us=5.5us
       //*clkport &= ~clkpinmask;
       if(d & bit) *mosiport |=  mosipinmask;
       else        *mosiport &= ~mosipinmask;

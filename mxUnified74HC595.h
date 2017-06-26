@@ -1,7 +1,7 @@
 #ifndef _MXUNIFIED74HC595_H
 #define _MXUNIFIED74HC595_H
 
-//#define _MXUNIFIEDIO_DEBUG 1
+#define _MXUNIFIEDIO_DEBUG 0		// Note: Serial debugging not supported on ATtiny85 
 
 #if defined(ARDUINO) && ARDUINO >= 100
   #include "Arduino.h"
@@ -10,17 +10,25 @@
   #include "pins_arduino.h"
 #endif
 #include "mxUnifiedIO.h"
-#include <SPI.h>
+#if defined(MXUNIFIED_ATTINY)
+	#include <tinySPI.h>               //http://github.com/JChristensen/tinySPI
+#else
+	#include <SPI.h>
+#endif
 
-// Default to max SPI clock speed for PCD8544 of 4 mhz (16mhz / 4) for normal Arduinos.
-// This can be modified to change the clock speed if necessary (like for supporting other hardware).
-#define MXUNIFIED74HC595_SPI_CLOCK_DIV SPI_CLOCK_DIV4
 #ifdef ESP8266
 	#define MXUNIFIED74HC595_SPI_PIN_SS 15			// SS=15 by default on ESP?
+#elif defined(MXUNIFIED_ATTINY)
+	#define MXUNIFIED74HC595_SPI_PIN_SS 0			// SS=0 by default on ATtiny
+	#define SPI_CLOCK_DIV4 4			// setting SPI clock is not supported by tinySPI
 #else
 	#define MXUNIFIED74HC595_SPI_PIN_SS 10
 #endif
 #define MXUNIFIED74HC595_MAX_REGISTERS 4
+
+// Default to max SPI clock speed for PCD8544 of 4 mhz (16mhz / 4) for normal Arduinos.
+// This can be modified to change the clock speed if necessary (like for supporting other hardware).
+#define MXUNIFIED74HC595_SPI_CLOCK_DIV SPI_CLOCK_DIV4
 
 
 #ifdef __SAM3X8E__
