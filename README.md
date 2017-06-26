@@ -14,6 +14,8 @@ to be used as easy as those on the MCU.
 
 You can download the .ZIP library files from the locations mentioned above. Use the Arduino IDE to add the .ZIP library file via the menu. Alternatively copy all library files into a folder under your /libraries/ folder and restart the IDE.
 
+The ATtiny85 can be programmed using a programmer such as the USBasp. This library was tested with an ATtiny85 running at 8MHz, using the attiny core by David A. Mellis. It was installed using the Arduino IDE boardmanager. For more information see also [his github page](https://github.com/damellis/attiny), this [tutorial by SparkFun](https://learn.sparkfun.com/tutorials/tiny-avr-programmer-hookup-guide/attiny85-use-hints) and this [YouTube video by Make:](https://www.youtube.com/watch?v=30rPt802n1k).
+
 # Pinouts & connections
 The 74HC595 shift register requires three pins plus VCC/GND.
 The shift register can be connected to the hardware SPI pin for best speed.
@@ -59,7 +61,7 @@ mxUnified74HC595 unio = mxUnified74HC595();                  // default hardware
 - As the 74HC595 shifts data to its output pins, only OUTPUT mode is supported. digitalWrite() and shiftOut() are used to set the output pins. digitalRead() can be used to query the status of an output pin.
 - Using digitalWrite() to change one expanded pin requires sending a whole byte to the shift register (or more when cascaded). Therefor the maximum speed that can be achieved is much lower than using direct MCU pins.
 - Best speeds can be obtained by connecting the shift register to the hardware SPI pins and by using a fast MCU. The ESP8266 has a higher clock-speed than an ATmega328. To optimize speed on the Atmel MCU, port-manipulation techniques are applied when using software SPI to drive the shift register. This may result in less compatibility with untested MCUs.
-- shiftOUt() can be used as software SPI on expanded pins, where you can choose which pin to use for MOSI and SCK. Please note that shifting one byte out requires 16 changes of the clockpin, so this is much slower than using direct MCU pins. However, the Nokia LCD examples shows that the results can still be quite usable. See https://github.com/maxint-rd/mxUnifiedPCD8544_Nokia_5110_LCD for more info and the specific examples.
+- shiftOut() can be used as software SPI on expanded pins, where you can choose which pin to use for MOSI and SCK. Please note that shifting one byte out requires 16 changes of the clockpin, so this is much slower than using direct MCU pins. However, the Nokia LCD examples shows that the results can still be quite usable. See https://github.com/maxint-rd/mxUnifiedPCD8544_Nokia_5110_LCD for more info and the specific examples.
 - Currently a maximum of four cascaded shift registers is supported. Please note each added shift register will require more bits to be shifted out, resulting in slower handling of digitalWrite() and shiftOut() calls.
 
 # Disclaimer
