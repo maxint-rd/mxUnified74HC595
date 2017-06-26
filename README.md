@@ -8,15 +8,22 @@ By using this library, setting a pin of the shift register is as easy as calling
 The library implements shiftOut() to allow device specific drivers using the expanded pins of the shift register
 to be used as easy as those on the MCU.
 
+# Installation
+- This library requires the mxUnifiedIO base library: https://github.com/maxint-rd/mxUnifiedIO
+- To support the ATtiny85, the tinyISP library is required: http://github.com/JChristensen/tinySPI
+
+You can download the .ZIP library files from the locations mentioned above. Use the Arduino IDE to add the .ZIP library file via the menu. Alternatively copy all library files into a folder under your /libraries/ folder and restart the IDE.
+
 # Pinouts & connections
 The 74HC595 shift register requires three pins plus VCC/GND.
 The shift register can be connected to the hardware SPI pin for best speed.
 - Default pins for ESP8266:   SS=15, MOSI=13, SCLK=14
 - Default pins for ATmega328: SS=10, MOSI=11, SCLK=13
+- Default pins for ATtiny85:  SS=0, MOSI=1, SCLK=2
 
-Note: with hardware SPI MISO pins isn't used but will still be read and written to during SPI transfer. Be careful when sharing these pins!
-
-Software SPI pins are slower, but offer pin-freedom.
+Notes:
+- With hardware SPI the MISO pin isn't used but will still be read and written to during SPI transfer. Be careful when sharing this pin!
+- Software SPI pins are slower, but offer pin-freedom.
 - Suggested pins for ESP-01: SS=3 (RX), MOSI=2, SCLK=1
 
 This fine piece of ASCII-art shows the pinout of the 74HC595. Of course you can also review the [TI datasheet](http://www.ti.com/lit/ds/symlink/sn74hc595.pdf) (PDF).
@@ -48,7 +55,7 @@ mxUnified74HC595 unio = mxUnified74HC595();                  // default hardware
 ```
 
 # Features & limitations
-- The current version of this library supports ESP8266 and Atmel ATmega328 and ATmega168 MCUs. Other Atmel processors may work as well, but they've not been tested yet. For some MCUs the library will require modification. Please let me know if you've successfully used this library with other MCUs.
+- The current version of this library supports ESP8266 and Atmel ATmega328 and ATmega168 MCUs. Support for ATtiny85 was just added. Other Atmel processors may work as well, but they've not been tested yet. For some MCUs the library will require modification. Please let me know if you've successfully used this library with other MCUs.
 - As the 74HC595 shifts data to its output pins, only OUTPUT mode is supported. digitalWrite() and shiftOut() are used to set the output pins. digitalRead() can be used to query the status of an output pin.
 - Using digitalWrite() to change one expanded pin requires sending a whole byte to the shift register (or more when cascaded). Therefor the maximum speed that can be achieved is much lower than using direct MCU pins.
 - Best speeds can be obtained by connecting the shift register to the hardware SPI pins and by using a fast MCU. The ESP8266 has a higher clock-speed than an ATmega328. To optimize speed on the Atmel MCU, port-manipulation techniques are applied when using software SPI to drive the shift register. This may result in less compatibility with untested MCUs.
