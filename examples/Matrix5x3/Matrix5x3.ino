@@ -13,6 +13,18 @@
 
 #include <mxUnified74HC595.h>
 
+//#define _MXUNIFIEDOUTPUT_DEBUG 0
+#if defined(__AVR_ATtiny85__)
+  // ATtiny85 has no regular hardware serial. You can use TinyDebugSerial (TX=3) or software serial
+  // see also http://www.ernstc.dk/arduino/tinycom.html
+  #include <SoftwareSerial.h>
+  SoftwareSerial mySerial(4, 3); // RX, TX
+  //TinyDebugSerial mySerial= TinyDebugSerial(); 
+  #define Serial mySerial
+  #define LED_BUILTIN 1
+#endif
+
+
 // create the 74HC595 output object
 mxUnified74HC595 unio = mxUnified74HC595();                  // use hardware SPI pins, no cascading
 //mxUnified74HC595 unio = mxUnified74HC595(2);               // use hardware SPI pins, two cascaded shift-registers (slightly slower, but more pins)
@@ -22,6 +34,8 @@ mxUnified74HC595 unio = mxUnified74HC595();                  // use hardware SPI
 // Hardware SPI pins:
 //   ATmega328: SS=10, MOSI=11, SCLK=12
 //   ESP8266:   SS=15, MOSI=13, SCLK=14
+//   ATtiny85:  SS=0, MOSI=1, SCLK=2
+//   Suggested pins ESP-01:   SS=3 (RX), MOSI=2, SCLK=0
 
 // clock-timings on 3.3V 8MHz 328 using software SPI shiftOut: 7+21 us per SCLK tick, latch-pulse digitalWrite: 10us
 // clock-timings on 3.3V 8MHz 328 using software SPI port manipulation: 3.5+2 us per SCLK tick, latch-pulse, latch-pulse digitalWrite: 10us
@@ -420,4 +434,3 @@ for(int i=9; i>=0;i--)    // decresing byte doesn't compile allright
   }
 
 }
-
