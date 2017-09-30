@@ -10,7 +10,7 @@ to be used as easy as those on the MCU.
 
 # Installation
 - This library requires the mxUnifiedIO base library: https://github.com/maxint-rd/mxUnifiedIO
-- To support the ATtiny85, the tinyISP library is required: http://github.com/JChristensen/tinySPI
+- To support the ATtiny85, the tinySPI library is required: http://github.com/JChristensen/tinySPI
 
 You can download the .ZIP library files from the locations mentioned above. Use the Arduino IDE to add the .ZIP library file via the menu. Alternatively copy all library files into a folder under your /libraries/ folder and restart the IDE.
 
