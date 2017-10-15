@@ -64,11 +64,14 @@ class mxUnified74HC595 : public mxUnifiedIO
 */
   
  	void digitalWrite(uint8_t nPin, uint8_t nVal);
+	void setBitOrder(uint8_t bitOrder);		// default bitorder is MSBFIRST
 
  private:
  	uint8_t _nNumRegisters;
  	int8_t _spi_SS, _spi_MOSI, _spi_SCLK;
  	uint8_t _spi_error;
+ 	uint8_t _spi_bitorder;
+
   volatile PortReg  *mosiport, *clkport, *ssport;
   PortMask mosipinmask, clkpinmask, sspinmask;
 

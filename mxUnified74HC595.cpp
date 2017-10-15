@@ -17,6 +17,7 @@ mxUnified74HC595::mxUnified74HC595(uint8_t nNumRegisters)		// default: nNumRegis
 	_spi_SCLK=-1;
 //	_spi_MOSI=11;
 //	_spi_SCLK=13;
+	_spi_bitorder=MSBFIRST;
 }
 
 mxUnified74HC595::mxUnified74HC595(uint8_t nPinSS, uint8_t nPinMOSI, uint8_t nPinSCLK, uint8_t nNumRegisters)		// default: nNumRegisters=1 
@@ -30,6 +31,7 @@ mxUnified74HC595::mxUnified74HC595(uint8_t nPinSS, uint8_t nPinMOSI, uint8_t nPi
 	_spi_SS=nPinSS;
 	_spi_MOSI=nPinMOSI;
 	_spi_SCLK=nPinSCLK;
+	_spi_bitorder=MSBFIRST;
 }
 
 #if defined(ESP8266)
@@ -71,7 +73,7 @@ void mxUnified74HC595::begin(uint8_t spi_speed_div)	// default: spi_speed_div=SP
 #if defined(MXUNIFIED_ATTINY)
 		// setBitOrder is not supported by tinySPI. Only MSBFIRST is supported.
 #else
-    SPI.setBitOrder(MSBFIRST);
+    SPI.setBitOrder(_spi_bitorder);
 #endif
   }
   else
@@ -226,7 +228,15 @@ void mxUnified74HC595::digitalWrite(uint8_t nPin, uint8_t nVal)
 	if (nPin >= _nNumPins) return;
 	setBit(nPin, nVal);
 	sendBits();
-}	
+}
+
+void mxUnified74HC595::setBitOrder(uint8_t bitOrder) 
+{	// set the bit order used to write to the shift register, either MSBFIRST (default) or LSBFIRST
+	//
+	if (isHardwareSPI())
+		SPI.setBitOrder(bitOrder);
+	_spi_bitorder=bitOrder;
+}
 
 inline void mxUnified74HC595::spiWrite(uint8_t d)
 {
@@ -264,15 +274,28 @@ inline void mxUnified74HC595::spiWrite(uint8_t d)
 #ifdef ESP8266
     // see https://github.com/adafruit/Adafruit-PCD8544-Nokia-5110-LCD-library/pull/27/commits
 		// On ESP8266@80Mzh: digitalWrite SCLK L+H=0.5+1.0us=1.5us (667KHz)
-    for(uint8_t bit = 0x80; bit; bit >>= 1)
-    {
-      //::digitalWrite(_spi_SCLK, LOW);
-      if (d & bit) ::digitalWrite(_spi_MOSI, HIGH);
-      else         ::digitalWrite(_spi_MOSI, LOW);
-      //::digitalWrite(_spi_SCLK, HIGH);
-      ::digitalWrite(_spi_SCLK, HIGH);
-      ::digitalWrite(_spi_SCLK, LOW);
-    }
+		if(_spi_bitorder==MSBFIRST)
+		{
+	    for(uint8_t bit = 0x80; bit; bit >>= 1)
+	    {
+	      //::digitalWrite(_spi_SCLK, LOW);
+	      if (d & bit) ::digitalWrite(_spi_MOSI, HIGH);
+	      else         ::digitalWrite(_spi_MOSI, LOW);
+	      //::digitalWrite(_spi_SCLK, HIGH);
+	      ::digitalWrite(_spi_SCLK, HIGH);
+	      ::digitalWrite(_spi_SCLK, LOW);
+	    }
+  	}
+  	else
+  	{	// LSBFIRST (=least significant bit first)
+	    for(uint8_t bit = 0x01; bit; bit <<= 1)
+	    {
+	      if (d & bit) ::digitalWrite(_spi_MOSI, HIGH);
+	      else         ::digitalWrite(_spi_MOSI, LOW);
+	      ::digitalWrite(_spi_SCLK, HIGH);
+	      ::digitalWrite(_spi_SCLK, LOW);
+	    }
+  	}
 #else
     //::shiftOut(_spi_MOSI, _spi_SCLK, MSBFIRST, d);			// on ATtiny85@8Mzh shiftOut is slower than doing digitalWrites: SCLK H+L=7+19=26us
     for(uint8_t bit = 0x80; bit; bit >>= 1)
