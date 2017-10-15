@@ -58,6 +58,7 @@ mxUnified74HC595 unio = mxUnified74HC595();                  // default hardware
 
 # Features & limitations
 - The current version of this library supports ESP8266 and Atmel ATmega328 and ATmega168 MCUs. Support for ATtiny85 was just added. Other Atmel processors may work as well, but they've not been tested yet. For some MCUs the library will require modification. Please let me know if you've successfully used this library with other MCUs.
+- Using hardware SPI to drive the shift register(s) is fastest, but not available on each MCU module. For ATtiny and ESP-01 software SPI is available. Note: in the current version setBitOrder() is only implemented for software SPI on ESP8266, not for Atmel.
 - As the 74HC595 shifts data to its output pins, only OUTPUT mode is supported. digitalWrite() and shiftOut() are used to set the output pins. digitalRead() can be used to query the status of an output pin.
 - Using digitalWrite() to change one expanded pin requires sending a whole byte to the shift register (or more when cascaded). Therefor the maximum speed that can be achieved is much lower than using direct MCU pins.
 - Best speeds can be obtained by connecting the shift register to the hardware SPI pins and by using a fast MCU. The ESP8266 has a higher clock-speed than an ATmega328. To optimize speed on the Atmel MCU, port-manipulation techniques are applied when using software SPI to drive the shift register. This may result in less compatibility with untested MCUs.
