@@ -9,7 +9,7 @@
 mxUnified74HC595 unio = mxUnified74HC595(3, 2, 0, 2);      // alternative software SPI pins for ESP-01: SS, MOSI, SCLK, two cascaded shift-registers (slow, but pin-freedom)
 
 // Hardware SPI pins:
-//   ATmega328: SS=10, MOSI=11, SCLK=12
+//   ATmega328: SS=10, MOSI=11, SCLK=13
 //   ESP8266:   SS=15, MOSI=13, SCLK=14
 
 // Software SPI pins:
