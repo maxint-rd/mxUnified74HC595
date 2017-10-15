@@ -21,7 +21,7 @@ mxUnified74HC595 unio = mxUnified74HC595();                  // use hardware SPI
 //mxUnified74HC595 unio = mxUnified74HC595(0, 1, 2);   // alternative software SPI pins for ATtiny85: SS=3(RX), MOSI=2, SCLK=0, three cascaded shift-registers (slow, but pin-freedom)
 
 // Hardware SPI pins:
-//   ATmega328: SS=10, MOSI=11, SCLK=12
+//   ATmega328: SS=10, MOSI=11, SCLK=13
 //   ESP8266:   SS=15, MOSI=13, SCLK=14
 //   ATtiny85:  SS=0, MOSI=1, SCLK=2
 
@@ -35,7 +35,7 @@ void setup()
   Serial.begin(115200);
   Serial.println(F("mxUnified74HC595 Blink"));
 
-  unio.begin();     // start using the mxUnified74HC595 I2C shift register
+  unio.begin();     // start using the mxUnified74HC595 shift register
   unio.digitalWrite(1, HIGH);   // set expanded pin 3 high
 }
 
