@@ -3,7 +3,7 @@
 mxUnified74HC595::mxUnified74HC595(uint8_t nNumRegisters)		// default: nNumRegisters=1 
 {	// constructor for hardware SPI
 	// Hardware SPI pins:
-	//   ATmega328: SS=10, MOSI=11, SCLK=12
+	//   ATmega328: SS=10, MOSI=11, SCLK=13 (MISO=12 is not used)
 	//   ATtiny85:  SS=0, MOSI=1, SCLK=2
 	//   ESP8266:   SS=15, MOSI=13, SCLK=14
 	
@@ -182,7 +182,6 @@ void mxUnified74HC595::shiftOut(uint8_t nDataPin, uint8_t nClockPin, uint8_t bit
 {	// shiftOut the bits of one byte to the stated exended data and clock pins
 	// TODO: bitOrder can be MSBFIRST or LSBFIRST, LSBFIRST is not implemented yet!
 	// TODO: currently shiftOut will not start/end transmission. Would be nice if automatic?
-	uint8_t aI2C_bytestream[16];
 	uint8_t uCnt=0;
 	//uint8_t dataOut=_pUniOut->getBits();
 #if(_MXUNIFIEDIO_DEBUG)
@@ -191,28 +190,16 @@ void mxUnified74HC595::shiftOut(uint8_t nDataPin, uint8_t nClockPin, uint8_t bit
 
   for(uint8_t bit = 0x80; bit; bit >>= 1)
   {
-		// Using the PCF8574 library for bulk writes is WAY TOO SLOW! (1400 ms to display the screen)
- 		// Each SPI DIN databyte transfer requires 16 CLK toggles, i.e. 16 I2C bytes to write.
- 		// Therefor bundle the writing of each byte into one Wire.write() call and minimize the begin/end calls.
- 		// This saves writing the address for each bit and speeds screen display up to 380 ms.
- 		// Still slow, but acceptable when display() function is not called after drawing each primitive. 
-		// BTW. Setting bits is more readable using the i2cSetBit function and doesn't cost much performance.
   	setBit(nClockPin, LOW);
   	setBit(nDataPin, (nValue & bit));
   	sendBits();
-    //aI2C_bytestream[uCnt++]=_dataOut;
   	setBit(nClockPin, HIGH);
   	sendBits();
-  	//aI2C_bytestream[uCnt++]=_dataOut;
   }
 
 #if(_MXUNIFIEDIO_DEBUG)
 	Serial.print(F("t"));
 #endif
-
-//	Serial.print(F("W"));
-//  Wire.write(aI2C_bytestream, sizeof(aI2C_bytestream));		// writing the bytes of all 16 bits in one go (still takes 302-480ms)
-//	Serial.print(F("e"));
 }
 
 /* no transaction support (yet) 
@@ -238,7 +225,6 @@ void mxUnified74HC595::digitalWrite(uint8_t nPin, uint8_t nVal)
 
 	if (nPin >= _nNumPins) return;
 	setBit(nPin, nVal);
-//	::digitalWrite(_aPins[nPin], nVal);		// call the regular digitalWrite using the global scope resolution operator
 	sendBits();
 }	
 
@@ -256,7 +242,7 @@ inline void mxUnified74HC595::spiWrite(uint8_t d)
 #endif
 
 
-    // Hardware SPI write.
+		// Hardware SPI write.
 		// On 168/328@8MHz: hw-SPI SCLK L+H=0.25+0.25us=0.5us (8MHz/DIV4=2MHz SPI)
 		// On ESP@80MHz: hw-SPI SCLK L+H=0.125+0.125us=0.25us (4MHz SPI)
 		// On ATtiny85@8MHz: hw-SPI SCLK L+H=0,75+0,75=1,5us () (667 kHz, using tinySPI on USI)
