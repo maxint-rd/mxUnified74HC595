@@ -8,7 +8,7 @@ mxUnified74HC595 unio = mxUnified74HC595();                  // use hardware SPI
 //mxUnified74HC595 unio = mxUnified74HC595(10, 11, 13, 4);   // alternative software SPI pins: SS, MOSI, SCLK, three cascaded shift-registers (slow, but pin-freedom)
 #define NUMPINS 8
 // Hardware SPI pins:
-//   ATmega328: SS=10, MOSI=11, SCLK=12
+//   ATmega328: SS=10, MOSI=11, SCLK=13
 //   ESP8266:   SS=15, MOSI=13, SCLK=14
 
 // clock-timings on 3.3V 8MHz 328 using software SPI shiftOut: 7+21 us per SCLK tick, latch-pulse digitalWrite: 10us
@@ -21,7 +21,7 @@ void setup()
   Serial.begin(115200);
   Serial.println(F("mxUnified74HC595 Blink16"));
 
-  unio.begin();     // start using the mxUnified74HC595 I2C shift register
+  unio.begin();     // start using the mxUnified74HC595 shift register
   for(int nPin=0; nPin<NUMPINS; nPin++)
     unio.digitalWrite(nPin, LOW);   // set expanded pin low
 }
