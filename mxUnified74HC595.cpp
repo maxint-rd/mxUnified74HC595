@@ -71,7 +71,7 @@ void mxUnified74HC595::begin(uint8_t spi_speed_div)	// default: spi_speed_div=SP
 #endif
     SPI.setDataMode(SPI_MODE0);
 #if defined(MXUNIFIED_ATTINY)
-		// setBitOrder is not supported by tinySPI. Only MSBFIRST is supported.
+		// setBitOrder is not supported by tinySPI. When using hardware SPI, only MSBFIRST is supported.
 #else
     SPI.setBitOrder(_spi_bitorder);
 #endif
@@ -230,11 +230,15 @@ void mxUnified74HC595::digitalWrite(uint8_t nPin, uint8_t nVal)
 	sendBits();
 }
 
-void mxUnified74HC595::setBitOrder(uint8_t bitOrder) 
+void mxUnified74HC595::setBitOrder(uint8_t bitOrder)
 {	// set the bit order used to write to the shift register, either MSBFIRST (default) or LSBFIRST
 	//
+#if defined(MXUNIFIED_ATTINY)
+		// setBitOrder is not supported by tinySPI. When using hardware SPI, only MSBFIRST is supported.
+#else
 	if (isHardwareSPI())
 		SPI.setBitOrder(bitOrder);
+#endif
 	_spi_bitorder=bitOrder;
 }
 
@@ -276,47 +280,60 @@ inline void mxUnified74HC595::spiWrite(uint8_t d)
 		// On ESP8266@80Mzh: digitalWrite SCLK L+H=0.5+1.0us=1.5us (667KHz)
 		if(_spi_bitorder==MSBFIRST)
 		{
-	    for(uint8_t bit = 0x80; bit; bit >>= 1)
-	    {
-	      //::digitalWrite(_spi_SCLK, LOW);
-	      if (d & bit) ::digitalWrite(_spi_MOSI, HIGH);
-	      else         ::digitalWrite(_spi_MOSI, LOW);
-	      //::digitalWrite(_spi_SCLK, HIGH);
-	      ::digitalWrite(_spi_SCLK, HIGH);
-	      ::digitalWrite(_spi_SCLK, LOW);
-	    }
-  	}
-  	else
-  	{	// LSBFIRST (=least significant bit first)
-	    for(uint8_t bit = 0x01; bit; bit <<= 1)
-	    {
-	      if (d & bit) ::digitalWrite(_spi_MOSI, HIGH);
-	      else         ::digitalWrite(_spi_MOSI, LOW);
-	      ::digitalWrite(_spi_SCLK, HIGH);
-	      ::digitalWrite(_spi_SCLK, LOW);
-	    }
-  	}
+			for(uint8_t bit = 0x80; bit; bit >>= 1)
+			{
+				//::digitalWrite(_spi_SCLK, LOW);
+				if (d & bit) ::digitalWrite(_spi_MOSI, HIGH);
+				else         ::digitalWrite(_spi_MOSI, LOW);
+				//::digitalWrite(_spi_SCLK, HIGH);
+				::digitalWrite(_spi_SCLK, HIGH);
+				::digitalWrite(_spi_SCLK, LOW);
+			}
+		}
+		else
+		{	// LSBFIRST (=least significant bit first)
+			for(uint8_t bit = 0x01; bit; bit <<= 1)
+			{
+				if (d & bit) ::digitalWrite(_spi_MOSI, HIGH);
+				else         ::digitalWrite(_spi_MOSI, LOW);
+				::digitalWrite(_spi_SCLK, HIGH);
+				::digitalWrite(_spi_SCLK, LOW);
+			}
+		}
 #else
-    //::shiftOut(_spi_MOSI, _spi_SCLK, MSBFIRST, d);			// on ATtiny85@8Mzh shiftOut is slower than doing digitalWrites: SCLK H+L=7+19=26us
-    for(uint8_t bit = 0x80; bit; bit >>= 1)
-    {
-/*
-			// On 328@8Mzh: digitalWrite SCLK L+H=8+17us=25us
-			// on ATtiny85@8Mzh using digitalWrites is faster than shiftOut: SCLK H+L=7+16=23us
-      ::digitalWrite(_spi_SCLK, LOW);
-      if (d & bit) ::digitalWrite(_spi_MOSI, HIGH);
-      else         ::digitalWrite(_spi_MOSI, LOW);
-      ::digitalWrite(_spi_SCLK, HIGH);
-*/
-			// On 328@8Mzh: port-mani SCLK L+H=3.5+2us=5.5us
-			// On 168@8Mzh: port-mani SCLK H+L=1.6+4us=5.5us
-			// On ATtiny85@8Mzh: port-mani SCLK H+L=1.5+42us=5.5us
-      //*clkport &= ~clkpinmask;
-      if(d & bit) *mosiport |=  mosipinmask;
-      else        *mosiport &= ~mosipinmask;
-      *clkport |=  clkpinmask;
-      *clkport &= ~clkpinmask;			// changed clock to resemble hardware SPI: active high and pulse clock after setting data
-    }
+		//::shiftOut(_spi_MOSI, _spi_SCLK, MSBFIRST, d);			// on ATtiny85@8Mzh shiftOut is slower than doing digitalWrites: SCLK H+L=7+19=26us
+		if(_spi_bitorder==MSBFIRST)
+		{
+			for(uint8_t bit = 0x80; bit; bit >>= 1)
+			{
+				/*
+				// On 328@8Mzh: digitalWrite SCLK L+H=8+17us=25us
+				// on ATtiny85@8Mzh using digitalWrites is faster than shiftOut: SCLK H+L=7+16=23us
+				::digitalWrite(_spi_SCLK, LOW);
+				if (d & bit) ::digitalWrite(_spi_MOSI, HIGH);
+				else         ::digitalWrite(_spi_MOSI, LOW);
+				::digitalWrite(_spi_SCLK, HIGH);
+				*/
+				// On 328@8Mzh: port-mani SCLK L+H=3.5+2us=5.5us
+				// On 168@8Mzh: port-mani SCLK H+L=1.6+4us=5.5us
+				// On ATtiny85@8Mzh: port-mani SCLK H+L=1.5+42us=5.5us
+				//*clkport &= ~clkpinmask;
+				if(d & bit) *mosiport |=  mosipinmask;
+				else        *mosiport &= ~mosipinmask;
+				*clkport |=  clkpinmask;
+				*clkport &= ~clkpinmask;			// changed clock to resemble hardware SPI: active high and pulse clock after setting data
+			}
+		}
+		else
+		{	// LSBFIRST (=least significant bit first)
+			for(uint8_t bit = 0x01; bit; bit <<= 1)
+			{
+				if(d & bit) *mosiport |=  mosipinmask;
+				else        *mosiport &= ~mosipinmask;
+				*clkport |=  clkpinmask;
+				*clkport &= ~clkpinmask;			// changed clock to resemble hardware SPI: active high and pulse clock after setting data
+			}
+		}
 #endif
   }
 }
