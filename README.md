@@ -26,7 +26,7 @@ The shift register can be connected to the hardware SPI pin for best speed.
 Notes:
 - With hardware SPI the MISO pin isn't used but will still be read and written to during SPI transfer. Be careful when sharing this pin!
 - Software SPI pins are slower, but offer pin-freedom.
-- Suggested pins for ESP-01: SS=3 (RX), MOSI=2, SCLK=1
+- Suggested pins for ESP-01: SS=3 (RX), MOSI=2, SCLK=0
 
 This fine piece of ASCII-art shows the pinout of the 74HC595. Of course you can also review the [TI datasheet](http://www.ti.com/lit/ds/symlink/sn74hc595.pdf) (PDF).
 ```
