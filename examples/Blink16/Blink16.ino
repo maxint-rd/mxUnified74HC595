@@ -6,14 +6,14 @@
 //mxUnified74HC595 unio = mxUnified74HC595(2);               // use hardware SPI pins, two cascaded shift-registers (slightly slower, but more pins)
 //mxUnified74HC595 unio = mxUnified74HC595(10, 11, 13);      // alternative software SPI pins: SS, MOSI, SCLK, no cascading (slow, but pin-freedom)
 //mxUnified74HC595 unio = mxUnified74HC595(10, 11, 13, 4);   // alternative software SPI pins: SS, MOSI, SCLK, three cascaded shift-registers (slow, but pin-freedom)
-mxUnified74HC595 unio = mxUnified74HC595(3, 2, 0, 2);      // alternative software SPI pins for ESP-01: SS, MOSI, SCLK, two cascaded shift-registers (slow, but pin-freedom)
+mxUnified74HC595 unio = mxUnified74HC595(3, 2, 0, 2);   // alternative software SPI pins for ESP-01: SS=3(RX), MOSI=2, SCLK=0, two cascaded shift-registers (slow, but pin-freedom)
 
 // Hardware SPI pins:
 //   ATmega328: SS=10, MOSI=11, SCLK=13
 //   ESP8266:   SS=15, MOSI=13, SCLK=14
 
 // Software SPI pins:
-//   Suggested pins for ESP-01: SS=3 (RX), MOSI=2, SCLK=1
+//   Suggested pins for ESP-01: SS=3 (RX), MOSI=2, SCLK=0
 
 // clock-timings on 3.3V 8MHz 328 using software SPI shiftOut: 7+21 us per SCLK tick, latch-pulse digitalWrite: 10us
 // clock-timings on 3.3V 8MHz 328 using software SPI port manipulation: 3.5+2 us per SCLK tick, latch-pulse, latch-pulse digitalWrite: 10us
