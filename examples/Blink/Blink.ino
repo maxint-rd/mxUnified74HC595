@@ -17,8 +17,8 @@ mxUnified74HC595 unio = mxUnified74HC595();                  // use hardware SPI
 //mxUnified74HC595 unio = mxUnified74HC595(2);               // use hardware SPI pins, two cascaded shift-registers (slightly slower, but more pins)
 //mxUnified74HC595 unio = mxUnified74HC595(10, 11, 13);      // alternative software SPI pins: SS, MOSI, SCLK, no cascading (slow, but pin-freedom)
 //mxUnified74HC595 unio = mxUnified74HC595(10, 11, 13, 3);   // alternative software SPI pins: SS, MOSI, SCLK, three cascaded shift-registers (slow, but pin-freedom)
-//mxUnified74HC595 unio = mxUnified74HC595(0, 2, 3);   // alternative software SPI pins for ESP-01: SS=3(RX), MOSI=2, SCLK=0, three cascaded shift-registers (slow, but pin-freedom)
-//mxUnified74HC595 unio = mxUnified74HC595(0, 1, 2);   // alternative software SPI pins for ATtiny85: SS=3(RX), MOSI=2, SCLK=0, three cascaded shift-registers (slow, but pin-freedom)
+//mxUnified74HC595 unio = mxUnified74HC595(3, 2, 0);   // alternative software SPI pins for ESP-01: SS=3(RX), MOSI=2, SCLK=0, no cascaded shift-registers (slow, but pin-freedom)
+//mxUnified74HC595 unio = mxUnified74HC595(2, 1, 0);   // alternative software SPI pins for ATtiny85: SS=2, MOSI=1, SCLK=0, no cascaded shift-registers (slow, but pin-freedom)
 
 // Hardware SPI pins:
 //   ATmega328: SS=10, MOSI=11, SCLK=13
